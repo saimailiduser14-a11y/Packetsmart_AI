@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title if title else "PocketSmart AI - Smart Budget & Shopping Recommendations" }}</title>
+  
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="/static/styles.css">
+  
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-logo">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color: #818cf8;"></i>
+        <span>PocketSmart</span>
+        <span class="brand-badge">AI</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Home</a></li>
+        <li><a href="/home-planner" class="nav-link {% if request.url.path == '/home-planner' %}active{% endif %}"><i class="fa-solid fa-couch"></i> Home Interior</a></li>
+        <li><a href="/party-planner" class="nav-link {% if request.url.path == '/party-planner' %}active{% endif %}"><i class="fa-solid fa-cake-candles"></i> Party Planner</a></li>
+        <li><a href="/jewelry-planner" class="nav-link {% if request.url.path == '/jewelry-planner' %}active{% endif %}"><i class="fa-solid fa-gem"></i> Jewelry Stylist</a></li>
+        {% if user %}
+        <li><a href="/history" class="nav-link {% if request.url.path == '/history' %}active{% endif %}"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+        {% endif %}
+      </ul>
+
+      <div class="nav-actions">
+        {% if user %}
+        <a href="/dashboard" class="user-pill">
+          <div class="avatar-circle">{{ user.username[:1].upper() }}</div>
+          <span>{{ user.full_name or user.username }}</span>
+        </a>
+        <a href="/logout" class="btn btn-secondary btn-sm" title="Sign Out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+        {% else %}
+        <a href="/login" class="btn btn-secondary btn-sm">Sign In</a>
+        <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Wrapper -->
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Global Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Global Modal for Details -->
+  <div id="globalModal" class="modal-backdrop" onclick="closeGlobalModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="hideModal()"><i class="fa-solid fa-xmark"></i></button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-microchip" style="color: #38bdf8;"></i>
+        <span>PocketSmart AI &bull; Powered by Google Gemini &amp; FastAPI</span>
+      </div>
+      <div>
+        <span style="color: var(--text-dim);">Targeting Vercel Serverless Architecture</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Global JavaScript Utilities -->
+  <script>
+    // Toast Notification System
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      let icon = 'info-circle';
+      if (type === 'success') icon = 'check-circle';
+      if (type === 'error') icon = 'triangle-exclamation';
+      
+      toast.innerHTML = `
+        <i class="fa-solid fa-${icon}"></i>
+        <div style="flex: 1;">${message}</div>
+      `;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Modal Helpers
+    function showModal(contentHtml) {
+      document.getElementById('modalBody').innerHTML = contentHtml;
+      document.getElementById('globalModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function hideModal() {
+      document.getElementById('globalModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+
+    function closeGlobalModal(e) {
+      if (e.target.id === 'globalModal') {
+        hideModal();
+      }
+    }
+
+    // Number formatter for currency
+    function formatCurrency(amount, currency = 'INR') {
+      const symbol = currency === 'INR' ? '₹' : (currency === 'USD' ? '$' : currency);
+      return `${symbol} ${Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+    }
+  </script>
+
+  {% block scripts %}{% endblock %}
+
+</body>
+</html>

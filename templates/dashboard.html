@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="color: #818cf8; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+        Personal Workspace
+      </div>
+      <h1>Welcome back, {{ user.full_name or user.username }}!</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Here is a bird's-eye view of your budget plans and shopping allocations.</p>
+    </div>
+    <div>
+      <a href="/history" class="btn btn-secondary btn-sm">
+        <i class="fa-solid fa-clock-rotate-left"></i> View Full History
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Stat KPI Cards -->
+<div class="budget-stats-grid">
+  <div class="stat-box">
+    <div class="stat-box-title">Total Plans Generated</div>
+    <div class="stat-box-value">{{ stats.total_plans }}</div>
+    <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">Across all categories</div>
+  </div>
+
+  <div class="stat-box">
+    <div class="stat-box-title">Total Budget Managed</div>
+    <div class="stat-box-value">₹ {{ "{:,.0f}".format(stats.total_budget_sum) }}</div>
+    <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">Entered financial limits</div>
+  </div>
+
+  <div class="stat-box">
+    <div class="stat-box-title">Allocated Spend</div>
+    <div class="stat-box-value allocated">₹ {{ "{:,.0f}".format(stats.total_allocated_sum) }}</div>
+    <div style="font-size: 0.75rem; color: #10b981; margin-top: 0.4rem;">
+      <i class="fa-solid fa-shield-check"></i> ₹ {{ "{:,.0f}".format(stats.total_budget_sum - stats.total_allocated_sum) }} saved in cushion
+    </div>
+  </div>
+
+  <div class="stat-box">
+    <div class="stat-box-title">Top Category</div>
+    <div class="stat-box-value" style="color: #f472b6; font-size: 1.3rem;">{{ stats.favorite_category }}</div>
+    <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">Most frequent planner</div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  
+  <!-- Left Column: Quick Launch Actions -->
+  <div>
+    <h3 style="margin-bottom: 1rem; font-size: 1.25rem;">
+      <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Launch a New Budget Plan
+    </h3>
+    
+    <div class="quick-launch-grid">
+      <!-- Action 1 -->
+      <div class="quick-card">
+        <div>
+          <div style="font-size: 1.8rem; color: #818cf8; margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-couch"></i>
+          </div>
+          <h4 style="margin-bottom: 0.4rem;">Home Interior</h4>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+            Plan rooms, lighting, modular furniture, and decor within strict caps.
+          </p>
+        </div>
+        <a href="/home-planner" class="btn btn-primary btn-sm btn-block">
+          Open Planner <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <!-- Action 2 -->
+      <div class="quick-card">
+        <div>
+          <div style="font-size: 1.8rem; color: #fbbf24; margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-champagne-glasses"></i>
+          </div>
+          <h4 style="margin-bottom: 0.4rem;">Party &amp; Events</h4>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+            Compute per-head costs, catering, bar, and vendor links across Swiggy &amp; OYO.
+          </p>
+        </div>
+        <a href="/party-planner" class="btn btn-primary btn-sm btn-block">
+          Open Planner <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <!-- Action 3 -->
+      <div class="quick-card">
+        <div>
+          <div style="font-size: 1.8rem; color: #f472b6; margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-gem"></i>
+          </div>
+          <h4 style="margin-bottom: 0.4rem;">Jewelry Stylist</h4>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+            Upload outfit photo for vision matching with BlueStone and CaratLane.
+          </p>
+        </div>
+        <a href="/jewelry-planner" class="btn btn-primary btn-sm btn-block">
+          Open Stylist <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Recent Plans Snapshot -->
+  <div>
+    <h3 style="margin-bottom: 1rem; font-size: 1.25rem;">
+      <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i> Recent Plans
+    </h3>
+
+    {% if recent_plans %}
+      <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+        {% for plan in recent_plans %}
+        <div class="glass-card" style="padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span class="history-category-badge badge-cat-{{ plan.category }}">
+                {{ plan.category }}
+              </span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">{{ plan.created_at[:10] }}</span>
+            </div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: #fff;">{{ plan.title }}</div>
+            <div style="font-size: 0.82rem; color: #38bdf8; font-weight: 600;">
+              ₹ {{ "{:,.0f}".format(plan.allocated_budget) }} / ₹ {{ "{:,.0f}".format(plan.total_budget) }}
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="viewPlanDetails({{ plan.id }})" title="View Details">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="glass-card" style="text-align: center; padding: 2.5rem 1.5rem;">
+        <i class="fa-solid fa-clipboard-list" style="font-size: 2.5rem; color: var(--text-dim); margin-bottom: 0.75rem;"></i>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">No budget plans generated yet.</p>
+        <a href="/home-planner" class="btn btn-outline btn-sm">Create First Plan</a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function viewPlanDetails(id) {
+  try {
+    const res = await fetch(`/recommendation-details/${id}`);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      showToast('Could not load plan details', 'error');
+      return;
+    }
+    
+    const rec = data.recommendation;
+    const result = rec.result_data;
+    
+    let html = `
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <span class="history-category-badge badge-cat-${rec.category}">${rec.category}</span>
+        <h2 style="font-size: 1.4rem;">${rec.title}</h2>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">${result.summary || ''}</p>
+      
+      <div class="budget-stats-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 1.5rem;">
+        <div class="stat-box">
+          <div class="stat-box-title">Total Budget</div>
+          <div class="stat-box-value">${formatCurrency(rec.total_budget, result.currency || 'INR')}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-title">Allocated</div>
+          <div class="stat-box-value allocated">${formatCurrency(rec.allocated_budget, result.currency || 'INR')}</div>
+        </div>
+      </div>
+    `;
+
+    // Render items if home planner
+    if (result.items && result.items.length) {
+      html += `
+        <h4 style="margin-bottom: 0.75rem;">Allocated Items</h4>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.items.map(it => `
+                <tr>
+                  <td>
+                    <strong>${it.name}</strong><br>
+                    <small style="color: var(--text-dim);">${it.category}</small>
+                  </td>
+                  <td>${it.quantity}</td>
+                  <td>${formatCurrency(it.total_price, result.currency)}</td>
+                  <td>
+                    ${it.store_links ? `
+                      <div class="store-links-group">
+                        <a href="${it.store_links.amazon}" target="_blank" class="store-badge badge-amazon">Amazon</a>
+                        <a href="${it.store_links.flipkart}" target="_blank" class="store-badge badge-flipkart">Flipkart</a>
+                      </div>
+                    ` : '-'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // Render categories if party planner
+    if (result.categories && result.categories.length) {
+      html += `
+        <h4 style="margin-bottom: 0.75rem;">Category Allocations</h4>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Amount</th>
+                <th>Platforms</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.categories.map(c => `
+                <tr>
+                  <td><strong>${c.name}</strong><br><small style="color: var(--text-dim);">${c.description}</small></td>
+                  <td>${formatCurrency(c.allocated_amount, result.currency)} (${c.percentage}%)</td>
+                  <td>
+                    ${c.action_links ? `
+                      <div class="store-links-group">
+                        <a href="${c.action_links.swiggy}" target="_blank" class="store-badge badge-swiggy">Swiggy</a>
+                        <a href="${c.action_links.zomato}" target="_blank" class="store-badge badge-zomato">Zomato</a>
+                        <a href="${c.action_links.blinkit}" target="_blank" class="store-badge badge-blinkit">Blinkit</a>
+                      </div>
+                    ` : '-'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // Render jewelry pieces if jewelry planner
+    if (result.jewelry_pieces && result.jewelry_pieces.length) {
+      html += `
+        <h4 style="margin-bottom: 0.75rem;">Curated Jewelry Ensemble</h4>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Piece</th>
+                <th>Est. Price</th>
+                <th>Stores</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.jewelry_pieces.map(j => `
+                <tr>
+                  <td><strong>${j.title}</strong> (${j.piece_type})<br><small style="color: var(--text-dim);">${j.why_it_matches}</small></td>
+                  <td>${formatCurrency(j.estimated_price, result.currency)}</td>
+                  <td>
+                    ${j.store_links ? `
+                      <div class="store-links-group">
+                        <a href="${j.store_links.bluestone}" target="_blank" class="store-badge badge-bluestone">BlueStone</a>
+                        <a href="${j.store_links.caratlane}" target="_blank" class="store-badge badge-caratlane">CaratLane</a>
+                        <a href="${j.store_links.tanishq}" target="_blank" class="store-badge badge-tanishq">Tanishq</a>
+                      </div>
+                    ` : '-'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    showModal(html);
+  } catch (e) {
+    showToast('Error opening details', 'error');
+  }
+}
+</script>
+{% endblock %}

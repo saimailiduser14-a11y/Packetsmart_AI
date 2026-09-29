@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 0 auto;">
+  
+  <!-- Page Header -->
+  <div style="margin-bottom: 2rem; text-align: center;">
+    <div class="hero-pill" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fbbf24;">
+      <i class="fa-solid fa-cake-candles"></i> Event Management &amp; Hospitality
+    </div>
+    <h1 style="font-size: 2.4rem; margin-bottom: 0.5rem;">Party &amp; Event Budget Allocator</h1>
+    <p style="color: var(--text-muted); font-size: 1rem; max-width: 640px; margin: 0 auto;">
+      Plan unforgettable gatherings without financial surprises. Get per-guest economics, run-of-show timelines, and vendor allocations across Swiggy, Zomato, Blinkit, and Urban Company.
+    </p>
+  </div>
+
+  <!-- Planning Form Card -->
+  <div class="glass-card">
+    <form id="partyPlannerForm" onsubmit="generatePartyPlan(event)">
+      
+      <div class="form-grid">
+        
+        <!-- Event Type -->
+        <div class="form-group">
+          <label class="form-label" for="event_type">Occasion / Event Type</label>
+          <select id="event_type" name="event_type" class="form-select" required>
+            <option value="Birthday Bash" selected>Birthday Celebration</option>
+            <option value="House Party & Game Night">House Party &amp; Game Night</option>
+            <option value="Wedding Anniversary">Wedding Anniversary</option>
+            <option value="Bachelor / Bachelorette Party">Bachelor / Bachelorette Party</option>
+            <option value="Festive Celebration (Diwali / New Year)">Festive Celebration (Diwali / New Year)</option>
+            <option value="Kids Themed Birthday">Kids Themed Birthday Party</option>
+            <option value="Corporate Mixer / Team Dinner">Corporate Mixer / Team Dinner</option>
+            <option value="Family Get-Together">Family Get-Together</option>
+          </select>
+        </div>
+
+        <!-- Venue Type -->
+        <div class="form-group">
+          <label class="form-label" for="venue_type">Venue Setting</label>
+          <select id="venue_type" name="venue_type" class="form-select" required>
+            <option value="Living Room / Apartment" selected>Living Room / Apartment</option>
+            <option value="Rooftop Terrace / Backyard">Rooftop Terrace / Backyard</option>
+            <option value="Rented Airbnb / Vacation Villa">Rented Airbnb / Party Villa</option>
+            <option value="Banquet Hall / Private Lounge">Banquet Hall / Private Lounge</option>
+            <option value="Outdoor Park / Community Lawn">Outdoor Park / Community Lawn</option>
+          </select>
+        </div>
+
+        <!-- Guest Count -->
+        <div class="form-group">
+          <label class="form-label" for="guest_count">
+            Estimated Guests
+            <span class="form-label-hint">Adults &amp; kids</span>
+          </label>
+          <input type="number" id="guest_count" name="guest_count" class="form-control" required min="2" max="500" value="25">
+        </div>
+
+        <!-- Total Budget -->
+        <div class="form-group">
+          <label class="form-label" for="total_budget">
+            Total Event Budget
+            <span class="form-label-hint">All-inclusive ceiling</span>
+          </label>
+          <div style="display: flex; gap: 0.5rem;">
+            <select id="currency" name="currency" class="form-select" style="max-width: 95px;">
+              <option value="INR" selected>₹ INR</option>
+              <option value="USD">$ USD</option>
+              <option value="EUR">€ EUR</option>
+            </select>
+            <input type="number" id="total_budget" name="total_budget" class="form-control" required min="1000" step="500" value="30000" placeholder="30000">
+          </div>
+        </div>
+
+        <!-- Food Preference -->
+        <div class="form-group form-full">
+          <label class="form-label" for="food_preference">Culinary &amp; Dietary Menu</label>
+          <select id="food_preference" name="food_preference" class="form-select">
+            <option value="Mixed (Veg & Non-Veg)" selected>Mixed (Appetizers &amp; Mains for both Veg &amp; Non-Veg)</option>
+            <option value="Pure Vegetarian">Pure Vegetarian Delicacies</option>
+            <option value="Jain Special (No Onion/Garlic)">Jain Friendly (No Onion/Garlic options)</option>
+            <option value="Finger Foods, Sliders & Tapas">Finger Foods, Sliders &amp; Cocktails Nibbles only</option>
+            <option value="Gourmet Continental & Pizza">Gourmet Continental &amp; Artisan Pizza</option>
+          </select>
+        </div>
+
+        <!-- Services Needed (Chips) -->
+        <div class="form-group form-full">
+          <label class="form-label">
+            Services &amp; Vendor Requirements
+            <span class="form-label-hint">Select what needs allocation</span>
+          </label>
+          <div class="chips-group">
+            <input type="checkbox" id="svc_food" name="services_needed" value="Gourmet Catering" class="chip-checkbox" checked>
+            <label for="svc_food" class="chip-label"><i class="fa-solid fa-utensils"></i> Food &amp; Catering</label>
+
+            <input type="checkbox" id="svc_drinks" name="services_needed" value="Beverages & Mocktails" class="chip-checkbox" checked>
+            <label for="svc_drinks" class="chip-label"><i class="fa-solid fa-wine-glass"></i> Beverages &amp; Bar</label>
+
+            <input type="checkbox" id="svc_decor" name="services_needed" value="Themed Decor & Balloons" class="chip-checkbox" checked>
+            <label for="svc_decor" class="chip-label"><i class="fa-solid fa-wand-magic"></i> Decor &amp; Lights</label>
+
+            <input type="checkbox" id="svc_music" name="services_needed" value="Speaker & Music Setup" class="chip-checkbox" checked>
+            <label for="svc_music" class="chip-label"><i class="fa-solid fa-music"></i> Sound &amp; Music</label>
+
+            <input type="checkbox" id="svc_cleaning" name="services_needed" value="Post-Party Cleaning" class="chip-checkbox" checked>
+            <label for="svc_cleaning" class="chip-label"><i class="fa-solid fa-broom"></i> Post-Party Cleaning</label>
+
+            <input type="checkbox" id="svc_venue" name="services_needed" value="Venue & Room Rental" class="chip-checkbox">
+            <label for="svc_venue" class="chip-label"><i class="fa-solid fa-hotel"></i> Venue Stay / Rental</label>
+
+            <input type="checkbox" id="svc_photo" name="services_needed" value="Photo Booth Props" class="chip-checkbox">
+            <label for="svc_photo" class="chip-label"><i class="fa-solid fa-camera"></i> Photo Booth &amp; Props</label>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);">
+          <i class="fa-solid fa-champagne-glasses"></i>
+          <span>Compute Event Budget &amp; Vendor Routes</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Loading State Indicator -->
+  <div id="loadingIndicator" style="display: none; text-align: center; padding: 3rem 1rem;">
+    <div class="spinner" style="width: 2.5rem; height: 2.5rem; border-width: 3px; border-top-color: #fbbf24; margin-bottom: 1rem;"></div>
+    <h3 style="font-size: 1.3rem; margin-bottom: 0.4rem;">Optimizing Event Logistics...</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">
+      Computing per-guest fractions, building timeline agenda, and formatting vendor booking links...
+    </p>
+  </div>
+
+  <!-- Results Section -->
+  <div id="resultsCard" class="result-container glass-card">
+    
+    <div class="result-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+          <span id="aiBadge" class="brand-badge">AI Optimized</span>
+          <span id="resGuestsTag" style="font-size: 0.85rem; color: #fbbf24; font-weight: 600;"></span>
+        </div>
+        <h2 id="resTitle" style="font-size: 1.6rem;">Event Budget Allocation &amp; Vendors</h2>
+      </div>
+      <div>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">
+          <i class="fa-solid fa-print"></i> Print / Export
+        </button>
+      </div>
+    </div>
+
+    <p id="resSummary" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;"></p>
+
+    <!-- Budget Breakdown KPIs -->
+    <div class="budget-stats-grid">
+      <div class="stat-box">
+        <div class="stat-box-title">Total Budget</div>
+        <div id="resTotalBudget" class="stat-box-value"></div>
+        <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">Entered ceiling</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-title">Allocated Total</div>
+        <div id="resAllocatedBudget" class="stat-box-value" style="color: #fbbf24;"></div>
+        <div class="progress-bar-container">
+          <div id="resProgressBar" class="progress-bar-fill" style="background: linear-gradient(90deg, #f59e0b, #fbbf24); width: 0%;"></div>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-title">Cost Per Guest</div>
+        <div id="resPerGuest" class="stat-box-value" style="color: #38bdf8;"></div>
+        <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">Per-head hospitality metric</div>
+      </div>
+    </div>
+
+    <!-- Category Allocations & Vendors Table -->
+    <h3 style="margin-bottom: 1rem; font-size: 1.25rem;">
+      <i class="fa-solid fa-store" style="color: #fbbf24;"></i> Vendor Allocations &amp; Instant Bookings
+    </h3>
+    
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Category &amp; Coverage</th>
+            <th>Allocated Amount</th>
+            <th>Share</th>
+            <th>Recommended Vendors &amp; Links</th>
+          </tr>
+        </thead>
+        <tbody id="categoriesTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Run of Show Timeline & Saving Hacks -->
+    <div class="advice-grid">
+      <div class="advice-card">
+        <div class="advice-title" style="color: #fbbf24;">
+          <i class="fa-solid fa-clock"></i> Recommended Event Schedule
+        </div>
+        <ul id="timelineList" class="advice-list" style="list-style: none; padding-left: 0;"></ul>
+      </div>
+
+      <div class="advice-card">
+        <div class="advice-title" style="color: #10b981;">
+          <i class="fa-solid fa-lightbulb"></i> Event Host Cost-Saving Hacks
+        </div>
+        <ul id="hacksList" class="advice-list"></ul>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function generatePartyPlan(e) {
+  e.preventDefault();
+
+  const event_type = document.getElementById('event_type').value;
+  const venue_type = document.getElementById('venue_type').value;
+  const guest_count = parseInt(document.getElementById('guest_count').value);
+  const total_budget = parseFloat(document.getElementById('total_budget').value);
+  const currency = document.getElementById('currency').value;
+  const food_preference = document.getElementById('food_preference').value;
+
+  const checkboxes = document.querySelectorAll('input[name="services_needed"]:checked');
+  const services_needed = Array.from(checkboxes).map(cb => cb.value);
+
+  const submitBtn = document.getElementById('submitBtn');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const resultsCard = document.getElementById('resultsCard');
+
+  submitBtn.disabled = true;
+  loadingIndicator.style.display = 'block';
+  resultsCard.style.display = 'none';
+
+  try {
+    const res = await fetch('/party-budget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type,
+        guest_count,
+        venue_type,
+        services_needed,
+        total_budget,
+        food_preference,
+        currency
+      })
+    });
+
+    const payload = await res.json();
+    if (!res.ok || !payload.success) {
+      showToast(payload.detail || 'Failed to compute party budget', 'error');
+      return;
+    }
+
+    const data = payload.data;
+    renderPartyResults(data);
+    showToast('Party blueprint generated successfully!', 'success');
+  } catch (err) {
+    showToast('Network error while processing request.', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    loadingIndicator.style.display = 'none';
+  }
+}
+
+function renderPartyResults(data) {
+  const curr = data.currency || 'INR';
+  document.getElementById('resGuestsTag').innerText = `${data.guest_count} Guests • ${data.event_type}`;
+  document.getElementById('resSummary').innerText = data.summary || '';
+  
+  document.getElementById('resTotalBudget').innerText = formatCurrency(data.total_budget, curr);
+  document.getElementById('resAllocatedBudget').innerText = formatCurrency(data.allocated_budget, curr);
+  document.getElementById('resPerGuest').innerText = formatCurrency(data.cost_per_guest, curr);
+
+  const pctAllocated = Math.min(100, Math.round((data.allocated_budget / data.total_budget) * 100));
+  document.getElementById('resProgressBar').style.width = `${pctAllocated}%`;
+
+  const aiBadge = document.getElementById('aiBadge');
+  if (data.is_ai_generated) {
+    aiBadge.innerText = 'Gemini GenAI';
+    aiBadge.style.background = 'linear-gradient(135deg, #f59e0b, #ef4444)';
+  } else {
+    aiBadge.innerText = 'Smart Engine';
+    aiBadge.style.background = 'linear-gradient(135deg, #374151, #4b5563)';
+  }
+
+  // Populate Categories Table
+  const tbody = document.getElementById('categoriesTableBody');
+  tbody.innerHTML = '';
+  
+  (data.categories || []).forEach(cat => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <strong style="color: #fff; font-size: 0.95rem;">${cat.name}</strong><br>
+        <span style="font-size: 0.82rem; color: var(--text-muted);">${cat.description}</span><br>
+        ${cat.tips ? `<small style="color: #fbbf24;"><i class="fa-solid fa-circle-info"></i> ${cat.tips}</small>` : ''}
+      </td>
+      <td style="font-weight: 700; color: #fff; font-size: 1rem;">
+        ${formatCurrency(cat.allocated_amount, curr)}
+      </td>
+      <td><span style="color: #fbbf24; font-weight: 600;">${cat.percentage}%</span></td>
+      <td>
+        <div class="store-links-group">
+          ${cat.action_links?.swiggy ? `<a href="${cat.action_links.swiggy}" target="_blank" class="store-badge badge-swiggy"><i class="fa-solid fa-bowl-food"></i> Swiggy</a>` : ''}
+          ${cat.action_links?.zomato ? `<a href="${cat.action_links.zomato}" target="_blank" class="store-badge badge-zomato"><i class="fa-solid fa-utensils"></i> Zomato</a>` : ''}
+          ${cat.action_links?.blinkit ? `<a href="${cat.action_links.blinkit}" target="_blank" class="store-badge badge-blinkit"><i class="fa-solid fa-bolt"></i> Blinkit</a>` : ''}
+          ${cat.action_links?.urbancompany ? `<a href="${cat.action_links.urbancompany}" target="_blank" class="store-badge badge-urbancompany"><i class="fa-solid fa-hand-sparkles"></i> UC Service</a>` : ''}
+          ${cat.action_links?.oyo ? `<a href="${cat.action_links.oyo}" target="_blank" class="store-badge" style="background: #ee2e24; color: #fff;"><i class="fa-solid fa-hotel"></i> OYO</a>` : ''}
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Populate Schedule Timeline
+  const timelineList = document.getElementById('timelineList');
+  timelineList.innerHTML = '';
+  (data.schedule_timeline || []).forEach(item => {
+    const li = document.createElement('li');
+    li.style.display = 'flex';
+    li.style.alignItems = 'center';
+    li.style.gap = '0.75rem';
+    li.style.marginBottom = '0.65rem';
+    li.innerHTML = `
+      <span style="background: var(--bg-glass); border: 1px solid var(--border-glass); padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; color: #fbbf24; font-size: 0.8rem; min-width: 75px; text-align: center;">
+        ${item.time}
+      </span>
+      <span style="color: #e5e7eb; font-size: 0.88rem;">${item.activity}</span>
+    `;
+    timelineList.appendChild(li);
+  });
+
+  // Populate Hacks
+  const hacksList = document.getElementById('hacksList');
+  hacksList.innerHTML = '';
+  (data.saving_hacks || []).forEach(h => {
+    const li = document.createElement('li');
+    li.innerText = h;
+    hacksList.appendChild(li);
+  });
+
+  // Display results section with smooth scroll
+  const resultsCard = document.getElementById('resultsCard');
+  resultsCard.style.display = 'block';
+  resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+{% endblock %}

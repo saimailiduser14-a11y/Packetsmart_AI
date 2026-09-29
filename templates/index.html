@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section">
+  <div class="hero-pill">
+    <i class="fa-solid fa-sparkles"></i> GenAI Recommendation &amp; Procurement Engine
+  </div>
+  <h1 class="hero-title">
+    Never Overspend Again.<br>
+    <span class="gradient-text">Smart Budgeting Powered by AI.</span>
+  </h1>
+  <p class="hero-subtitle">
+    PocketSmart AI leverages Google Gemini to mathematically allocate your budget and generate instant, direct shopping and vendor links across Amazon, Flipkart, IKEA, Swiggy, Zomato, and BlueStone.
+  </p>
+  <div class="hero-cta">
+    <a href="/home-planner" class="btn btn-primary btn-lg">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Launch Home Planner
+    </a>
+    <a href="/party-planner" class="btn btn-secondary btn-lg">
+      <i class="fa-solid fa-cake-candles"></i> Plan a Party
+    </a>
+    <a href="/jewelry-planner" class="btn btn-secondary btn-lg">
+      <i class="fa-solid fa-gem"></i> Match Jewelry
+    </a>
+  </div>
+</div>
+
+<!-- 3 Primary Feature Modules -->
+<div class="features-grid">
+  
+  <!-- Feature 1: Home Interior -->
+  <div class="feature-card">
+    <div>
+      <div class="feature-icon-wrapper icon-home">
+        <i class="fa-solid fa-couch"></i>
+      </div>
+      <h3 class="feature-title">Home Interior Planner</h3>
+      <p class="feature-desc">
+        Configure room dimensions, item quotas (lighting, BLDC fans, sofas, storage), and preferred aesthetic. Receives strict budget-capped breakdowns with direct Amazon, Flipkart, and IKEA search links.
+      </p>
+      <div class="feature-tags">
+        <span class="tag-badge">Amazon.in</span>
+        <span class="tag-badge">Flipkart</span>
+        <span class="tag-badge">IKEA</span>
+        <span class="tag-badge">Zero Overspending</span>
+      </div>
+    </div>
+    <a href="/home-planner" class="btn btn-outline btn-block">
+      Open Home Planner <i class="fa-solid fa-arrow-right"></i>
+    </a>
+  </div>
+
+  <!-- Feature 2: Party Planner -->
+  <div class="feature-card">
+    <div>
+      <div class="feature-icon-wrapper icon-party">
+        <i class="fa-solid fa-champagne-glasses"></i>
+      </div>
+      <h3 class="feature-title">Party &amp; Event Allocator</h3>
+      <p class="feature-desc">
+        Input guest counts, venue preferences, and service needs. Generates per-guest metrics, schedule timelines, and fractional budget routing across Swiggy, Zomato, OYO, and Urban Company.
+      </p>
+      <div class="feature-tags">
+        <span class="tag-badge">Swiggy / Zomato</span>
+        <span class="tag-badge">Blinkit</span>
+        <span class="tag-badge">Urban Company</span>
+        <span class="tag-badge">Per-Head Cost</span>
+      </div>
+    </div>
+    <a href="/party-planner" class="btn btn-outline btn-block">
+      Open Party Planner <i class="fa-solid fa-arrow-right"></i>
+    </a>
+  </div>
+
+  <!-- Feature 3: Jewelry Planner -->
+  <div class="feature-card">
+    <div>
+      <div class="feature-icon-wrapper icon-jewelry">
+        <i class="fa-solid fa-gem"></i>
+      </div>
+      <h3 class="feature-title">Multimodal Jewelry Stylist</h3>
+      <p class="feature-desc">
+        Attach a photo of your outfit or describe your attire. Gemini vision analyzes colors, neckline, and formality to curate necklaces, earrings, and bangles with links to BlueStone, CaratLane, and Tanishq.
+      </p>
+      <div class="feature-tags">
+        <span class="tag-badge">Multimodal Vision</span>
+        <span class="tag-badge">BlueStone</span>
+        <span class="tag-badge">CaratLane</span>
+        <span class="tag-badge">Tanishq</span>
+      </div>
+    </div>
+    <a href="/jewelry-planner" class="btn btn-outline btn-block">
+      Open Jewelry Stylist <i class="fa-solid fa-arrow-right"></i>
+    </a>
+  </div>
+
+</div>
+
+<!-- Architecture & Value Props -->
+<div style="margin-top: 5rem; padding: 2.5rem; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-lg);">
+  <div style="text-align: center; max-width: 650px; margin: 0 auto 3rem;">
+    <h2 style="font-size: 2rem; margin-bottom: 0.75rem;">Engineered for Real-World Procurement</h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">
+      Unlike generic chatbots that provide arbitrary numbers, PocketSmart AI enforces mathematical boundary checks and creates immediate e-commerce shopping baskets.
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem;">
+    <div style="display: flex; gap: 1rem;">
+      <div style="color: #38bdf8; font-size: 1.5rem;"><i class="fa-solid fa-calculator"></i></div>
+      <div>
+        <h4 style="margin-bottom: 0.35rem;">Strict Budget Adherence</h4>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Algorithms ensure sum of allocations never exceeds entered budget limits, maintaining a safety cushion.</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+      <div style="color: #a855f7; font-size: 1.5rem;"><i class="fa-solid fa-camera"></i></div>
+      <div>
+        <h4 style="margin-bottom: 0.35rem;">Multimodal Visual Intelligence</h4>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Upload real outfit photos to detect necklines, zari work, and color accents for styling harmony.</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+      <div style="color: #10b981; font-size: 1.5rem;"><i class="fa-solid fa-cart-shopping"></i></div>
+      <div>
+        <h4 style="margin-bottom: 0.35rem;">1-Click E-Commerce Queries</h4>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Pre-encoded localized search queries directly link you to product categories on top Indian &amp; global portals.</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+      <div style="color: #f59e0b; font-size: 1.5rem;"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <h4 style="margin-bottom: 0.35rem;">Vercel Serverless Ready</h4>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Constructed with serverless `/tmp` ephemeral storage handling and sub-second cold starts.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

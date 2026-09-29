@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div style="font-size: 2rem; color: #818cf8; margin-bottom: 0.5rem;">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2>Welcome Back</h2>
+      <p>Log in to access your budget histories and AI plans</p>
+    </div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label" for="username_or_email">Username or Email</label>
+        <input type="text" id="username_or_email" name="username_or_email" class="form-control" required placeholder="e.g. alex or alex@example.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required placeholder="Enter your password">
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg">
+          <span>Sign In</span>
+        </button>
+      </div>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="/register">Create one free</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Signing in...';
+  btn.disabled = true;
+
+  const username_or_email = document.getElementById('username_or_email').value.trim();
+  const password = document.getElementById('password').value;
+
+  try {
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username_or_email, password })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('Signed in successfully! Redirecting...', 'success');
+      // Redirect to URL parameter redirect or dashboard
+      const params = new URLSearchParams(window.location.search);
+      const dest = params.get('redirect') || '/dashboard';
+      setTimeout(() => {
+        window.location.href = dest;
+      }, 700);
+    } else {
+      showToast(data.detail || 'Invalid username or password', 'error');
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  } catch (err) {
+    showToast('Network error during login. Please try again.', 'error');
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

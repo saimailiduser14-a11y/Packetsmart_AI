@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+google-genai
+pillow
+PyJWT
+cryptography
+python-dotenv

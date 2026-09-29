@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 0 auto;">
+  
+  <!-- Page Header -->
+  <div style="margin-bottom: 2rem; text-align: center;">
+    <div class="hero-pill" style="background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #f472b6;">
+      <i class="fa-solid fa-gem"></i> Multimodal Visual Styling &amp; Procurement
+    </div>
+    <h1 style="font-size: 2.4rem; margin-bottom: 0.5rem;">Jewelry Stylist &amp; Budget Planner</h1>
+    <p style="color: var(--text-muted); font-size: 1rem; max-width: 640px; margin: 0 auto;">
+      Upload a photo of your attire or describe your silhouette. Multimodal AI matches neckline, fabric tones, and budget to curate certified pieces from BlueStone, CaratLane, and Tanishq.
+    </p>
+  </div>
+
+  <!-- Planning Form Card -->
+  <div class="glass-card">
+    <form id="jewelryPlannerForm" onsubmit="generateJewelryPlan(event)">
+      
+      <div class="form-grid">
+        
+        <!-- Occasion -->
+        <div class="form-group">
+          <label class="form-label" for="occasion">Occasion / Dress Code</label>
+          <select id="occasion" name="occasion" class="form-select" required>
+            <option value="Wedding Reception (Bride / Groom / Close Family)" selected>Wedding Reception (Bride / Close Family)</option>
+            <option value="Engagement / Sangeet / Cocktail Night">Engagement / Sangeet / Cocktail Night</option>
+            <option value="Festive Celebration (Diwali / Puja)">Festive Celebration (Diwali / Puja)</option>
+            <option value="Daily Office / Professional Wear">Daily Office / Elegant Minimalist</option>
+            <option value="Formal Black-Tie Gala Dinner">Formal Black-Tie / Red Carpet Gala</option>
+            <option value="Casual Evening / Night Out">Casual Evening / Night Out</option>
+          </select>
+        </div>
+
+        <!-- Preferred Metal / Material -->
+        <div class="form-group">
+          <label class="form-label" for="metal_preference">Preferred Metal &amp; Gems</label>
+          <select id="metal_preference" name="metal_preference" class="form-select" required>
+            <option value="22K Yellow Gold" selected>22K Hallmarked Yellow Gold</option>
+            <option value="18K Gold & Natural Diamonds">18K Gold &amp; Natural Diamonds</option>
+            <option value="Lab-Grown Diamonds (Eco-Luxe)">Lab-Grown Diamonds (Eco-Luxe)</option>
+            <option value="Antique Kundan & Polki">Antique Kundan &amp; Polki</option>
+            <option value="925 Sterling Silver">925 Sterling Silver</option>
+            <option value="18K Rose Gold & Pearls">18K Rose Gold &amp; Pearls</option>
+            <option value="Platinum 950">Platinum 950</option>
+            <option value="Fashion / Oxidised Brass">Fashion / Oxidised Brass (Budget)</option>
+          </select>
+        </div>
+
+        <!-- Total Budget -->
+        <div class="form-group form-full">
+          <label class="form-label" for="total_budget">
+            Total Jewelry Budget
+            <span class="form-label-hint">Ceiling for complete ensemble</span>
+          </label>
+          <div style="display: flex; gap: 0.5rem;">
+            <select id="currency" name="currency" class="form-select" style="max-width: 95px;">
+              <option value="INR" selected>₹ INR</option>
+              <option value="USD">$ USD</option>
+              <option value="EUR">€ EUR</option>
+            </select>
+            <input type="number" id="total_budget" name="total_budget" class="form-control" required min="1000" step="1000" value="45000" placeholder="45000">
+          </div>
+        </div>
+
+        <!-- Outfit Description -->
+        <div class="form-group form-full">
+          <label class="form-label" for="outfit_description">
+            Outfit Style &amp; Fabric Details
+            <span class="form-label-hint">Silhouette, colors, neckline cut, embroidery</span>
+          </label>
+          <textarea id="outfit_description" name="outfit_description" class="form-textarea" required placeholder="e.g. Emerald green Banarasi silk saree with antique gold zari border, deep sweetheart blouse neckline, and subtle red piping.">Emerald green Banarasi silk saree with antique gold zari border, deep sweetheart blouse neckline, and subtle red piping.</textarea>
+        </div>
+
+        <!-- Drag-and-Drop Outfit Photo Upload -->
+        <div class="form-group form-full">
+          <label class="form-label">
+            Optional: Attach Outfit Photo (Multimodal Vision)
+            <span class="form-label-hint">PNG, JPG, or WEBP (Max 10MB)</span>
+          </label>
+          <div class="file-dropzone" id="dropzone" onclick="document.getElementById('outfit_image').click()">
+            <div class="dropzone-icon">
+              <i class="fa-solid fa-camera-retro"></i>
+            </div>
+            <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">
+              Click to select or drag &amp; drop your outfit photo
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+              Gemini vision detects colors, fabric luster, patterns, and collar lines automatically
+            </div>
+            <input type="file" id="outfit_image" name="outfit_image" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+            <img id="imagePreview" class="file-preview" alt="Outfit Preview">
+            <button type="button" id="clearImageBtn" class="btn btn-secondary btn-sm" style="display: none; margin: 0.75rem auto 0;" onclick="clearImage(event)">
+              <i class="fa-solid fa-trash"></i> Remove Photo
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3);">
+          <i class="fa-solid fa-gem"></i>
+          <span>Curate Jewelry Ensemble &amp; Check Stores</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Loading State Indicator -->
+  <div id="loadingIndicator" style="display: none; text-align: center; padding: 3rem 1rem;">
+    <div class="spinner" style="width: 2.5rem; height: 2.5rem; border-width: 3px; border-top-color: #ec4899; margin-bottom: 1rem;"></div>
+    <h3 style="font-size: 1.3rem; margin-bottom: 0.4rem;">Analyzing Outfit Silhouette &amp; Vision...</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">
+      Inspecting neckline geometries, matching color tones, and querying BlueStone, CaratLane, and Tanishq...
+    </p>
+  </div>
+
+  <!-- Results Section -->
+  <div id="resultsCard" class="result-container glass-card">
+    
+    <div class="result-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+          <span id="aiBadge" class="brand-badge">Multimodal AI</span>
+          <span id="resFormality" style="font-size: 0.85rem; color: #f472b6; font-weight: 600;"></span>
+        </div>
+        <h2 id="resTitle" style="font-size: 1.6rem;">Curated Jewelry Ensemble</h2>
+      </div>
+      <div>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">
+          <i class="fa-solid fa-print"></i> Print / Export
+        </button>
+      </div>
+    </div>
+
+    <p id="resSummary" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;"></p>
+
+    <!-- Visual Outfit Analysis Banner -->
+    <div id="outfitAnalysisBox" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 1.5rem;">
+      <div style="flex: 1; min-width: 200px;">
+        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Detected Style</div>
+        <div id="resStyleDetected" style="font-weight: 600; color: #fff;"></div>
+      </div>
+      <div style="flex: 1; min-width: 200px;">
+        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Neckline Pairing</div>
+        <div id="resNeckline" style="font-weight: 600; color: #38bdf8;"></div>
+      </div>
+      <div style="flex: 1; min-width: 200px;">
+        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Palette Harmony</div>
+        <div id="resPalette" style="font-weight: 600; color: #a5b4fc;"></div>
+      </div>
+    </div>
+
+    <!-- Budget Breakdown KPIs -->
+    <div class="budget-stats-grid">
+      <div class="stat-box">
+        <div class="stat-box-title">Target Budget</div>
+        <div id="resTotalBudget" class="stat-box-value"></div>
+        <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">User ceiling limit</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-title">Allocated Total</div>
+        <div id="resAllocatedBudget" class="stat-box-value" style="color: #f472b6;"></div>
+        <div class="progress-bar-container">
+          <div id="resProgressBar" class="progress-bar-fill" style="background: linear-gradient(90deg, #ec4899, #8b5cf6); width: 0%;"></div>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-title">Budget Reserve</div>
+        <div id="resRemainingBudget" class="stat-box-value remaining"></div>
+        <div style="font-size: 0.75rem; color: #10b981; margin-top: 0.4rem;">
+          <i class="fa-solid fa-shield-check"></i> Within bounds
+        </div>
+      </div>
+    </div>
+
+    <!-- Jewelry Pieces Table -->
+    <h3 style="margin-bottom: 1rem; font-size: 1.25rem;">
+      <i class="fa-solid fa-ring" style="color: #f472b6;"></i> Curated Pieces &amp; Certified Store Portals
+    </h3>
+    
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Piece &amp; Styling Reason</th>
+            <th>Composition</th>
+            <th>Est. Price</th>
+            <th>Share</th>
+            <th>Brand Stores</th>
+          </tr>
+        </thead>
+        <tbody id="piecesTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Stylist Advice & Investment Info -->
+    <div class="advice-grid">
+      <div class="advice-card">
+        <div class="advice-title" style="color: #f472b6;">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Stylist Masterclass Advice
+        </div>
+        <ul id="adviceList" class="advice-list"></ul>
+      </div>
+
+      <div class="advice-card">
+        <div class="advice-title" style="color: #38bdf8;">
+          <i class="fa-solid fa-certificate"></i> Certification &amp; Resale Guidance
+        </div>
+        <p id="investmentTip" style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;"></p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedImageFile = null;
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  selectedImageFile = file;
+  const preview = document.getElementById('imagePreview');
+  const clearBtn = document.getElementById('clearImageBtn');
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    preview.src = event.target.result;
+    preview.style.display = 'block';
+    clearBtn.style.display = 'inline-flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage(e) {
+  e.stopPropagation();
+  selectedImageFile = null;
+  document.getElementById('outfit_image').value = '';
+  document.getElementById('imagePreview').style.display = 'none';
+  document.getElementById('clearImageBtn').style.display = 'none';
+}
+
+// Drag & drop handlers
+const dropzone = document.getElementById('dropzone');
+['dragenter', 'dragover'].forEach(eventName => {
+  dropzone.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.classList.add('drag-over');
+  }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+  dropzone.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.classList.remove('drag-over');
+  }, false);
+});
+
+dropzone.addEventListener('drop', (e) => {
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  if (files && files.length) {
+    document.getElementById('outfit_image').files = files;
+    handleFileSelect({ target: { files: files } });
+  }
+});
+
+async function generateJewelryPlan(e) {
+  e.preventDefault();
+
+  const occasion = document.getElementById('occasion').value;
+  const outfit_description = document.getElementById('outfit_description').value.trim();
+  const metal_preference = document.getElementById('metal_preference').value;
+  const total_budget = document.getElementById('total_budget').value;
+  const currency = document.getElementById('currency').value;
+
+  const submitBtn = document.getElementById('submitBtn');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const resultsCard = document.getElementById('resultsCard');
+
+  submitBtn.disabled = true;
+  loadingIndicator.style.display = 'block';
+  resultsCard.style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('occasion', occasion);
+  formData.append('outfit_description', outfit_description);
+  formData.append('metal_preference', metal_preference);
+  formData.append('total_budget', total_budget);
+  formData.append('currency', currency);
+
+  if (selectedImageFile) {
+    formData.append('outfit_image', selectedImageFile);
+  }
+
+  try {
+    const res = await fetch('/jewelry-budget', {
+      method: 'POST',
+      body: formData
+    });
+
+    const payload = await res.json();
+    if (!res.ok || !payload.success) {
+      showToast(payload.detail || 'Failed to curate jewelry collection', 'error');
+      return;
+    }
+
+    const data = payload.data;
+    renderJewelryResults(data);
+    showToast('Jewelry ensemble successfully styled!', 'success');
+  } catch (err) {
+    showToast('Network error while processing request.', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    loadingIndicator.style.display = 'none';
+  }
+}
+
+function renderJewelryResults(data) {
+  const curr = data.currency || 'INR';
+  const analysis = data.outfit_analysis || {};
+
+  document.getElementById('resFormality').innerText = analysis.formality || '';
+  document.getElementById('resSummary').innerText = data.summary || '';
+  
+  document.getElementById('resStyleDetected').innerText = analysis.style_detected || 'Formal Attire';
+  document.getElementById('resNeckline').innerText = analysis.neckline_match || 'Complementary Cut';
+  document.getElementById('resPalette').innerText = (analysis.color_palette || []).join(', ') || 'Balanced Harmonies';
+
+  document.getElementById('resTotalBudget').innerText = formatCurrency(data.total_budget, curr);
+  document.getElementById('resAllocatedBudget').innerText = formatCurrency(data.allocated_budget, curr);
+  document.getElementById('resRemainingBudget').innerText = formatCurrency(data.remaining_budget, curr);
+
+  const pctAllocated = Math.min(100, Math.round((data.allocated_budget / data.total_budget) * 100));
+  document.getElementById('resProgressBar').style.width = `${pctAllocated}%`;
+
+  const aiBadge = document.getElementById('aiBadge');
+  if (data.is_ai_generated) {
+    aiBadge.innerText = 'Gemini Multimodal';
+    aiBadge.style.background = 'linear-gradient(135deg, #ec4899, #8b5cf6)';
+  } else {
+    aiBadge.innerText = 'Smart Engine';
+    aiBadge.style.background = 'linear-gradient(135deg, #374151, #4b5563)';
+  }
+
+  // Populate Pieces Table
+  const tbody = document.getElementById('piecesTableBody');
+  tbody.innerHTML = '';
+  
+  (data.jewelry_pieces || []).forEach(piece => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <strong style="color: #fff; font-size: 0.95rem;">${piece.title}</strong>
+        <span class="tag-badge" style="margin-left: 0.4rem; color: #f472b6; border-color: rgba(236,72,153,0.3);">${piece.piece_type}</span><br>
+        <span style="font-size: 0.82rem; color: var(--text-muted);">${piece.why_it_matches}</span>
+      </td>
+      <td style="font-size: 0.85rem; color: #cbd5e1;">${piece.metal_gem || '-'}</td>
+      <td style="font-weight: 700; color: #fff; font-size: 1rem;">${formatCurrency(piece.estimated_price, curr)}</td>
+      <td><span style="color: #f472b6; font-weight: 600;">${piece.percentage}%</span></td>
+      <td>
+        <div class="store-links-group">
+          ${piece.store_links?.bluestone ? `<a href="${piece.store_links.bluestone}" target="_blank" class="store-badge badge-bluestone">BlueStone</a>` : ''}
+          ${piece.store_links?.caratlane ? `<a href="${piece.store_links.caratlane}" target="_blank" class="store-badge badge-caratlane">CaratLane</a>` : ''}
+          ${piece.store_links?.tanishq ? `<a href="${piece.store_links.tanishq}" target="_blank" class="store-badge badge-tanishq">Tanishq</a>` : ''}
+          ${piece.store_links?.myntra ? `<a href="${piece.store_links.myntra}" target="_blank" class="store-badge badge-myntra">Myntra</a>` : ''}
+          ${piece.store_links?.amazon ? `<a href="${piece.store_links.amazon}" target="_blank" class="store-badge badge-amazon">Amazon</a>` : ''}
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Populate Advice
+  const adviceList = document.getElementById('adviceList');
+  adviceList.innerHTML = '';
+  (data.styling_advice || []).forEach(adv => {
+    const li = document.createElement('li');
+    li.innerText = adv;
+    adviceList.appendChild(li);
+  });
+
+  // Investment Tip
+  document.getElementById('investmentTip').innerText = data.investment_tip || 'Verify BIS 916/750 hallmark and ask for certified IGI/SGL cards when investing in precious jewelry.';
+
+  // Display results section with smooth scroll
+  const resultsCard = document.getElementById('resultsCard');
+  resultsCard.style.display = 'block';
+  resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+{% endblock %}
