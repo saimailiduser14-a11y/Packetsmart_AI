@@ -4,7 +4,7 @@ import shutil
 import uuid
 from typing import Optional, List
 from fastapi import FastAPI, Request, Form, File, UploadFile, Depends, HTTPException, status, Response
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -31,6 +31,20 @@ app = FastAPI(
     description="GenAI-powered budget-conscious multi-platform shopping & vendor allocation engine",
     version="1.0.0"
 )
+
+# Explicit CSS route handler for Vercel fallback
+@app.get("/static/styles.css")
+@app.get("/styles.css")
+async def get_styles_css():
+    candidates = [
+        os.path.join(STATIC_DIR, "styles.css"),
+        os.path.join(BASE_DIR, "public", "static", "styles.css"),
+        os.path.join(BASE_DIR, "public", "styles.css"),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return FileResponse(p, media_type="text/css")
+    raise HTTPException(status_code=404, detail="styles.css not found")
 
 # Mount static files with absolute path
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
