@@ -12,8 +12,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Robust directory paths for Local & Vercel Serverless
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 # Set up ephemeral file storage for Vercel vs Local
-UPLOAD_DIR = "/tmp/uploads" if os.getenv("VERCEL") else os.path.join("static", "uploads")
+UPLOAD_DIR = "/tmp/uploads" if os.getenv("VERCEL") else os.path.join(STATIC_DIR, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Internal module imports
@@ -27,11 +32,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files with absolute path
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# Configure Jinja2 templates
-templates = Jinja2Templates(directory="templates")
+# Configure Jinja2 templates with absolute path
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # ==========================================
 # PYDANTIC MODELS FOR API REQUESTS

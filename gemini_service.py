@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 import urllib.parse
 from typing import Dict, Any, List, Optional
 from PIL import Image
@@ -33,8 +34,8 @@ def make_amazon_url(query: str, domain: str = "in") -> str:
 def make_flipkart_url(query: str) -> str:
     return f"https://www.flipkart.com/search?q={url_encode(query)}"
 
-def make_ikea_url(query: str) -> str:
-    return f"https://www.ikea.com/in/en/search/?q={url_encode(query)}"
+def make_ikea_url(query: str, country: str = "in/en") -> str:
+    return f"https://www.ikea.com/{country}/search/?q={url_encode(query)}"
 
 def make_swiggy_url(query: str = "food") -> str:
     return f"https://www.swiggy.com/search?query={url_encode(query)}"
@@ -102,16 +103,11 @@ def generate_home_budget(
 
     if genai_client:
         try:
-            from google.genai import types
-            
-            system_instruction = (
-                "You are an expert budget interior designer and procurement specialist. "
-                "Your mission is to create a realistic, strictly budget-compliant interior procurement plan. "
-                "CRITICAL: The sum of total_price across all items MUST NOT exceed the total_budget. "
-                "Output ONLY a raw, valid JSON object matching the requested schema without markdown backticks."
-            )
-            
-            user_prompt = f"""
+            prompt = f"""
+            You are an expert budget interior designer and procurement specialist.
+            CRITICAL REQUIREMENT: The sum of total_price across all items MUST NOT exceed {budget}.
+            Output ONLY a raw, valid JSON object without any markdown code block fences.
+
             Room Type: {room_type}
             Room Size: {room_size}
             Total Budget: {currency} {budget}
@@ -119,13 +115,13 @@ def generate_home_budget(
             Style Preference: {style_preference}
             Priority Mode: {priority}
 
-            Return a JSON object with this exact structure:
+            Return this exact JSON schema:
             {{
               "summary": "Concise summary of the interior strategy",
               "style_theme": "{style_preference}",
               "total_budget": {budget},
-              "allocated_budget": <float, strictly <= total_budget>,
-              "remaining_budget": <float, total_budget - allocated_budget>,
+              "allocated_budget": <float <= {budget}>,
+              "remaining_budget": <float, {budget} - allocated_budget>,
               "currency": "{currency}",
               "items": [
                 {{
@@ -144,16 +140,12 @@ def generate_home_budget(
             }}
             """
             
-            response = genai_client.models.generate_content(
+            interaction = genai_client.interactions.create(
                 model=GEMINI_MODEL,
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                    response_mime_type="application/json",
-                    temperature=0.3
-                )
+                input=prompt
             )
-            data = clean_json_response(response.text)
+            raw_text = interaction.output_text or (interaction.outputs[-1].text if interaction.outputs else "")
+            data = clean_json_response(raw_text)
             
             # Enrich items with live e-commerce search URLs
             for item in data.get("items", []):
@@ -176,7 +168,6 @@ def fallback_home_budget(room_type, room_size, budget, items_needed, style_prefe
     """Resilient fallback engine that guarantees balanced allocations within budget."""
     safe_budget = float(budget)
     
-    # Standard item catalog definitions based on room
     catalog = {
         "Living Room": [
             ("Furniture", "3-Seater Fabric Sofa Couch", 0.32, 1, f"{style_preference} 3 seater sofa living room"),
@@ -217,8 +208,6 @@ def fallback_home_budget(room_type, room_size, budget, items_needed, style_prefe
     
     allocated = 0.0
     items_list = []
-    
-    # Calculate allocated portions, ensuring it caps at ~94% of budget for a healthy contingency cushion
     scaling_factor = 0.94 / sum(item[2] for item in base_items)
     
     for cat, name, frac, qty, search in base_items:
@@ -289,16 +278,11 @@ def generate_party_budget(
 
     if genai_client:
         try:
-            from google.genai import types
-            
-            system_instruction = (
-                "You are an elite event director and party cost strategist. "
-                "Generate a detailed, fractionally allocated party execution plan across vendors. "
-                "CRITICAL: The sum of all allocated_amount fields MUST NOT exceed total_budget. "
-                "Output ONLY a raw, valid JSON object matching the requested schema."
-            )
-            
-            user_prompt = f"""
+            prompt = f"""
+            You are an elite event director and party cost strategist.
+            CRITICAL REQUIREMENT: The sum of all allocated_amount fields MUST NOT exceed {total_budget}.
+            Output ONLY a raw, valid JSON object without markdown code fences.
+
             Event: {event_type}
             Guest Count: {guest_count}
             Venue: {venue_type}
@@ -312,8 +296,8 @@ def generate_party_budget(
               "event_type": "{event_type}",
               "guest_count": {guest_count},
               "total_budget": {total_budget},
-              "allocated_budget": <float, strictly <= total_budget>,
-              "cost_per_guest": <float, allocated_budget / guest_count>,
+              "allocated_budget": <float <= {total_budget}>,
+              "cost_per_guest": <float, allocated_budget / {guest_count}>,
               "currency": "{currency}",
               "categories": [
                 {{
@@ -336,18 +320,13 @@ def generate_party_budget(
             }}
             """
             
-            response = genai_client.models.generate_content(
+            interaction = genai_client.interactions.create(
                 model=GEMINI_MODEL,
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                    response_mime_type="application/json",
-                    temperature=0.3
-                )
+                input=prompt
             )
-            data = clean_json_response(response.text)
+            raw_text = interaction.output_text or (interaction.outputs[-1].text if interaction.outputs else "")
+            data = clean_json_response(raw_text)
             
-            # Enrich categories with vendor links
             for cat in data.get("categories", []):
                 q = cat.get("search_query") or f"{event_type} {cat.get('name')}"
                 cat["action_links"] = {
@@ -369,7 +348,6 @@ def fallback_party_budget(event_type, guest_count, venue_type, services_needed, 
     safe_budget = float(total_budget)
     safe_guests = max(int(guest_count), 1)
     
-    # Dynamic weight distribution based on services
     has_venue_rent = any("venue" in s.lower() or "hall" in s.lower() for s in services_needed) or "Banquet" in venue_type or "Airbnb" in venue_type
     
     if has_venue_rent:
@@ -464,28 +442,13 @@ def generate_jewelry_budget(
 
     if genai_client:
         try:
-            from google.genai import types
-            
-            system_instruction = (
-                "You are an expert high-fashion jewelry stylist and gemology consultant. "
-                "Analyze the user's outfit (and attached image if provided) to curate complementary jewelry pieces. "
-                "Match the neckline, embroidery, silhouette, formality, and color palette. "
-                "CRITICAL: The sum of estimated_price across all jewelry_pieces MUST NOT exceed total_budget. "
-                "Output ONLY a raw, valid JSON object matching the requested schema."
-            )
-            
-            prompt_parts = []
-            
-            if image_bytes and image_mime_type:
-                # Add multimodal image part
-                image_part = types.Part.from_bytes(
-                    data=image_bytes,
-                    mime_type=image_mime_type
-                )
-                prompt_parts.append(image_part)
-                prompt_parts.append("Analyze this uploaded outfit photo carefully. Identify its primary colors, neckline cut, embroidery/print level, and stylistic vibe.")
-
             text_prompt = f"""
+            You are an expert high-fashion jewelry stylist and gemology consultant.
+            Analyze the user's outfit to curate complementary jewelry pieces (necklace, earrings, bangles/bracelets, rings).
+            Match the neckline, embroidery, silhouette, formality, and color palette.
+            CRITICAL REQUIREMENT: The sum of estimated_price across all jewelry_pieces MUST NOT exceed {total_budget}.
+            Output ONLY a raw, valid JSON object without markdown code block fences.
+
             Occasion: {occasion}
             User's Outfit Description: {outfit_description}
             Preferred Metal / Material: {metal_preference}
@@ -501,8 +464,8 @@ def generate_jewelry_budget(
                 "formality": "Casual | Festive | Black Tie | Traditional Wedding"
               }},
               "total_budget": {total_budget},
-              "allocated_budget": <float, strictly <= total_budget>,
-              "remaining_budget": <float, total_budget - allocated_budget>,
+              "allocated_budget": <float <= {total_budget}>,
+              "remaining_budget": <float, {total_budget} - allocated_budget>,
               "currency": "{currency}",
               "jewelry_pieces": [
                 {{
@@ -519,20 +482,24 @@ def generate_jewelry_budget(
               "investment_tip": "Advice on hallmarking, resale value, or maintenance"
             }}
             """
-            prompt_parts.append(text_prompt)
-
-            response = genai_client.models.generate_content(
-                model=GEMINI_MODEL,
-                contents=prompt_parts,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                    response_mime_type="application/json",
-                    temperature=0.3
-                )
-            )
-            data = clean_json_response(response.text)
             
-            # Enrich items with top jewelry brand search URLs
+            if image_bytes:
+                b64_image = base64.b64encode(image_bytes).decode("utf-8")
+                mime = image_mime_type or "image/jpeg"
+                interaction_input = [
+                    {"type": "text", "text": text_prompt},
+                    {"type": "image", "data": b64_image, "mime_type": mime}
+                ]
+            else:
+                interaction_input = text_prompt
+
+            interaction = genai_client.interactions.create(
+                model=GEMINI_MODEL,
+                input=interaction_input
+            )
+            raw_text = interaction.output_text or (interaction.outputs[-1].text if interaction.outputs else "")
+            data = clean_json_response(raw_text)
+            
             for piece in data.get("jewelry_pieces", []):
                 q = piece.get("search_term") or piece.get("title")
                 piece["store_links"] = {
@@ -553,7 +520,6 @@ def generate_jewelry_budget(
 def fallback_jewelry_budget(occasion, outfit_description, metal_preference, total_budget, currency, has_image=False):
     safe_budget = float(total_budget)
     
-    # Infer style from description
     desc_lower = outfit_description.lower()
     is_traditional = any(w in desc_lower for w in ["saree", "lehenga", "kurta", "anarkali", "sherwani", "ethnic", "zari"])
     is_western = any(w in desc_lower for w in ["gown", "dress", "suit", "blazer", "tuxedo", "cocktail", "western"])
