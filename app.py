@@ -32,6 +32,19 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Vercel Serverless Path Normalization Middleware
+@app.middleware("http")
+async def normalize_vercel_paths(request: Request, call_next):
+    path = request.scope.get("path", "")
+    for prefix in ["/api/index.py", "/api/index", "/api"]:
+        if path == prefix:
+            request.scope["path"] = "/"
+            break
+        elif path.startswith(prefix + "/"):
+            request.scope["path"] = path[len(prefix):]
+            break
+    return await call_next(request)
+
 # Explicit CSS route handler for Vercel fallback
 @app.get("/static/styles.css")
 @app.get("/styles.css")
